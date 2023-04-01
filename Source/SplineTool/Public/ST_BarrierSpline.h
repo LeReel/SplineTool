@@ -15,7 +15,7 @@ class SPLINETOOL_API AST_BarrierSpline : public AST_SplineTool
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,
 		Category="SplineTool|Spline settings|Barrier settings",
-		meta=(EditCondition="!bIsLooped", EditConditionHides))
+		meta=(EditCondition="!bIsClosed", EditConditionHides))
 	bool bHasTail = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,
 		Category = "SplineTool|Spline settings|Meshes",
@@ -27,11 +27,11 @@ protected:
 	bool bHasDoors = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,
 		Category="SplineTool|Spline settings|Barrier settings",
-		meta=(EditCondition="bHasDoor", EditConditionHides))
+		meta=(EditCondition="bHasDoors", EditConditionHides))
 	TArray<int32> doorIndexes;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,
 		Category = "SplineTool|Spline settings|Meshes",
-		meta=(EditCondition="bHasDoor", EditConditionHides))
+		meta=(EditCondition="bHasDoors", EditConditionHides))
 	FSplineMeshData doorMesh;
 
 public:
