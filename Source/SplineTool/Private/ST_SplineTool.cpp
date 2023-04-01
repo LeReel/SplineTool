@@ -59,6 +59,7 @@ AST_SplineTool::AST_SplineTool()
 	if (lengthTextRender)
 	{
 		AddOwnedComponent(lengthTextRender);
+		lengthTextRender->SetVisibility(bShowLengths);
 	}
 }
 
