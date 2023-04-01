@@ -23,7 +23,7 @@ struct FSplineMeshData
 	TEnumAsByte<EComponentMobility::Type> mobility = EComponentMobility::Movable;
 };
 
-UCLASS(Abstract)
+UCLASS()
 class SPLINETOOL_API AST_SplineTool : public AActor
 {
 	GENERATED_BODY()
