@@ -1,9 +1,9 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
 #include "Components/SplineComponent.h"
 #include "Components/SplineMeshComponent.h"
-#include "GameFramework/Actor.h"
 #include "ST_SplineTool.generated.h"
 
 class UTextRenderComponent;
@@ -24,7 +24,7 @@ struct FSplineMeshData
 };
 
 UCLASS(Abstract)
-class SPLINETOOL_API ST_SplineTool : public AActor
+class SPLINETOOL_API AST_SplineTool : public AActor
 {
 	GENERATED_BODY()
 
@@ -103,7 +103,7 @@ protected:
 	TArray<TEnumAsByte<EObjectTypeQuery>> clippingObjectTypes;
 
 public:
-	ST_SplineTool();
+	AST_SplineTool();
 
 	void OnConstruction(const FTransform& Transform) override;
 	virtual bool ShouldTickIfViewportsOnly() const override;

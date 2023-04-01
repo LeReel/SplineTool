@@ -1,4 +1,4 @@
-﻿#include "DA_BarrierSpline.h"
+﻿#include "ST_BarrierSpline.h"
 
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -6,11 +6,11 @@
 //Stored here because interfere with Save in scene if set in a sub-level
 UWorld* world = nullptr;
 
-ADA_BarrierSpline::ADA_BarrierSpline()
+AST_BarrierSpline::AST_BarrierSpline()
 {
 }
 
-void ADA_BarrierSpline::OnConstruction(const FTransform& Transform)
+void AST_BarrierSpline::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 
@@ -19,14 +19,14 @@ void ADA_BarrierSpline::OnConstruction(const FTransform& Transform)
 		world = GetWorld();
 	}
 
-	if (bHasDoor) PlaceDoor(world, pointsAmount);
-	if (bHasTail) PlaceElementAtIndex(world, tailMesh, pointsAmount - 1);
+	if (bHasDoors) PlaceDoors();
+	if (bHasTail) PlaceElementAtIndex(tailMesh, pointsAmount - 1);
 }
 
-void ADA_BarrierSpline::PlaceElementAtIndex(UWorld* _w, const FSplineMeshData _datas, const int _index)
+void AST_BarrierSpline::PlaceElementAtIndex(const FSplineMeshData _datas, const int _index)
 {
 	USplineMeshComponent* _tmpSmc = NewObject<USplineMeshComponent>(this, USplineMeshComponent::StaticClass());
-	UpdateSplineMeshSettings(*_tmpSmc, _datas, _w);
+	UpdateSplineMeshSettings(*_tmpSmc, _datas);
 
 	const FVector _loc = splineComponent->GetLocationAtSplinePoint(_index, ESplineCoordinateSpace::World);
 	_tmpSmc->SetWorldLocation(_loc);
@@ -42,17 +42,17 @@ void ADA_BarrierSpline::PlaceElementAtIndex(UWorld* _w, const FSplineMeshData _d
 	}
 }
 
-void ADA_BarrierSpline::PlaceDoor(UWorld* _w, const int _pointAmnt)
+void AST_BarrierSpline::PlaceDoors()
 {
 	for (const int _doorIndex : doorIndexes)
 	{
-		if (_doorIndex < 0 || _doorIndex >= _pointAmnt - 1) continue;
+		if (_doorIndex < 0 || _doorIndex >= pointsAmount - 1) continue;
 
 		//TODO: Correct cast type / populating method (not working with SMC anymore as it is InstancedMesh now)
 		//Casts the mesh at splinePoint[index] as a splineMeshComponent
 		//USplineMeshComponent* _sMC = Cast<USplineMeshComponent>(splineComponent->GetChildComponent(_doorIndex));
 		//if (!_sMC || _sMC->GetStaticMesh() == doorMesh.mesh) continue; //Avoids placing a door on an existing one
-		//UpdateSplineMeshSettings(*_sMC, doorMesh, _w);
+		//UpdateSplineMeshSettings(*_sMC, doorMesh);
 		//SetSplineMeshStartEnd_Free(*_sMC, doorMesh, _doorIndex);
 	}
 }

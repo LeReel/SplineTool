@@ -8,7 +8,7 @@
  * 
  */
 UCLASS()
-class SPLINETOOL_API ST_BarrierSpline : public ST_SplineTool
+class SPLINETOOL_API AST_BarrierSpline : public AST_SplineTool
 {
 	GENERATED_BODY()
 
@@ -24,7 +24,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,
 		Category="SplineTool|Spline settings|Barrier settings")
-	bool bHasDoor = false;
+	bool bHasDoors = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,
 		Category="SplineTool|Spline settings|Barrier settings",
 		meta=(EditCondition="bHasDoor", EditConditionHides))
@@ -35,12 +35,12 @@ protected:
 	FSplineMeshData doorMesh;
 
 public:
-	ADA_BarrierSpline();
+	AST_BarrierSpline();
 
 	void OnConstruction(const FTransform& Transform) override;
 	//virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
 protected:
-	void PlaceElementAtIndex(UWorld* _w, const FSplineMeshData _datas, const int _index);
-	void PlaceDoor(UWorld* _w, const int _pointAmnt);
+	void PlaceElementAtIndex(const FSplineMeshData _datas, const int _index);
+	void PlaceDoors();
 };

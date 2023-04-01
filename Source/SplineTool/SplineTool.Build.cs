@@ -7,15 +7,15 @@ public class SplineTool : ModuleRules
 	public SplineTool(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+		MinFilesUsingPrecompiledHeaderOverride = 1;
+		bUseUnity = false;
 	
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
-
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
 		PrivateIncludePaths.AddRange(new string[] {
 			"SplineTool/Private"
 		});
-
 		PublicIncludePaths.AddRange(new string[] {
 			"SplineTool/Public"
 		});

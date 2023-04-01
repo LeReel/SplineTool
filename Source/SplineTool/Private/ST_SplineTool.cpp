@@ -1,4 +1,4 @@
-﻿#include "DA_SplineTool.h"
+﻿#include "ST_SplineTool.h"
 
 #if WITH_EDITOR
 #include "EditorViewportClient.h"
@@ -13,7 +13,7 @@
 //Stored here because interfere with Save in scene if set in a sub-level
 UWorld* world = nullptr;
 
-ADA_SplineTool::ADA_SplineTool()
+AST_SplineTool::AST_SplineTool()
 {
 	//Enables Tick for TextRender rotation update
 	PrimaryActorTick.bCanEverTick = true;
@@ -62,7 +62,7 @@ ADA_SplineTool::ADA_SplineTool()
 	}
 }
 
-void ADA_SplineTool::BeginPlay()
+void AST_SplineTool::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -72,7 +72,7 @@ void ADA_SplineTool::BeginPlay()
 	}
 }
 
-void ADA_SplineTool::Tick(float DeltaSeconds)
+void AST_SplineTool::Tick(float DeltaSeconds)
 {
 	if (!world)
 	{
@@ -159,7 +159,7 @@ void ADA_SplineTool::Tick(float DeltaSeconds)
 }
 
 #if WITH_EDITOR
-void ADA_SplineTool::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void AST_SplineTool::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	//Get the name of the property that was changed  
 	const FName PropertyName = (PropertyChangedEvent.Property != nullptr)
@@ -167,7 +167,7 @@ void ADA_SplineTool::PostEditChangeProperty(FPropertyChangedEvent& PropertyChang
 		                           : NAME_None;
 
 	//IsClosed update
-	if (PropertyName == GET_MEMBER_NAME_CHECKED(ADA_SplineTool, bIsClosed))
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(AST_SplineTool, bIsClosed))
 	{
 		if (splineComponent)
 		{
@@ -175,7 +175,7 @@ void ADA_SplineTool::PostEditChangeProperty(FPropertyChangedEvent& PropertyChang
 		}
 	}
 	//ShowLength update
-	if (PropertyName == GET_MEMBER_NAME_CHECKED(ADA_SplineTool, bShowLengths))
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(AST_SplineTool, bShowLengths))
 	{
 		if (lengthTextRender)
 		{
@@ -187,7 +187,7 @@ void ADA_SplineTool::PostEditChangeProperty(FPropertyChangedEvent& PropertyChang
 }
 #endif
 
-void ADA_SplineTool::OnConstruction(const FTransform& Transform)
+void AST_SplineTool::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 
@@ -214,12 +214,12 @@ void ADA_SplineTool::OnConstruction(const FTransform& Transform)
 #endif
 }
 
-bool ADA_SplineTool::ShouldTickIfViewportsOnly() const
+bool AST_SplineTool::ShouldTickIfViewportsOnly() const
 {
 	return true;
 }
 
-void ADA_SplineTool::PopulateSplineWithInstancedMesh()
+void AST_SplineTool::PopulateSplineWithInstancedMesh()
 {
 	if (defaultMeshes.IsEmpty()) return;
 
@@ -273,7 +273,7 @@ void ADA_SplineTool::PopulateSplineWithInstancedMesh()
 	}
 }
 
-void ADA_SplineTool::GenerateSplineMeshes()
+void AST_SplineTool::GenerateSplineMeshes()
 {
 	if (instancedStaticMesh)
 	{
@@ -287,7 +287,7 @@ void ADA_SplineTool::GenerateSplineMeshes()
 	PopulateSplineWithSplineMeshComponent();
 }
 
-void ADA_SplineTool::PopulateSplineWithSplineMeshComponent(bool _bUpdateMesh)
+void AST_SplineTool::PopulateSplineWithSplineMeshComponent(bool _bUpdateMesh)
 {
 	const FSplineMeshData _meshData = GetRandomDefaultMeshData();
 
@@ -311,7 +311,7 @@ void ADA_SplineTool::PopulateSplineWithSplineMeshComponent(bool _bUpdateMesh)
 	}
 }
 
-void ADA_SplineTool::UpdateSplineMeshSettings(USplineMeshComponent& _sMC,
+void AST_SplineTool::UpdateSplineMeshSettings(USplineMeshComponent& _sMC,
                                               const FSplineMeshData _datas,
                                               bool _bUpdateMesh) const
 {
@@ -331,7 +331,7 @@ void ADA_SplineTool::UpdateSplineMeshSettings(USplineMeshComponent& _sMC,
 	_sMC.AttachToComponent(splineComponent, FAttachmentTransformRules::KeepRelativeTransform);
 }
 
-void ADA_SplineTool::SetSplineMeshStartEnd_Locked(USplineMeshComponent& _sMC,
+void AST_SplineTool::SetSplineMeshStartEnd_Locked(USplineMeshComponent& _sMC,
                                                   const FSplineMeshData _datas,
                                                   const int _index,
                                                   const float _meshSize,
@@ -359,7 +359,7 @@ void ADA_SplineTool::SetSplineMeshStartEnd_Locked(USplineMeshComponent& _sMC,
 	_sMC.SetStartAndEnd(_startPos, _cStartTan, _endPos, _cEndTan, _bUpdateMesh);
 }
 
-void ADA_SplineTool::SetSplineMeshStartEnd_Free(USplineMeshComponent& _sMC,
+void AST_SplineTool::SetSplineMeshStartEnd_Free(USplineMeshComponent& _sMC,
                                                 const FSplineMeshData _datas,
                                                 const int _pointIndex,
                                                 bool _bUpdateMesh) const
@@ -388,7 +388,7 @@ void ADA_SplineTool::SetSplineMeshStartEnd_Free(USplineMeshComponent& _sMC,
 	_sMC.SetStartAndEnd(_startPos, _startTan, _endPos, _endTan, _bUpdateMesh);
 }
 
-void ADA_SplineTool::ClipToGround()
+void AST_SplineTool::ClipToGround()
 {
 	//Too perf-consuming at the moment
 	if (!bIsEditMode) return;
