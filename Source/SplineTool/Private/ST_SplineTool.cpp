@@ -3,12 +3,15 @@
 #if WITH_EDITOR
 #include "EditorViewportClient.h"
 #endif
+#include "ST_Utils.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Components/TextRenderComponent.h"
 #include "Engine/StaticMesh.h"
 #include "HAL/ThreadManager.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
+
+DEFINE_LOG_CATEGORY(LogCustom);
 
 //Stored here because interfere with Save in scene if set in a sub-level
 UWorld* world = nullptr;
@@ -211,7 +214,6 @@ void AST_SplineTool::OnConstruction(const FTransform& Transform)
 	{
 		GenerateSplineMeshes();
 	}
-	//TODO: See if this #if cancels mesh generation on Runtime
 #endif
 }
 
@@ -239,9 +241,9 @@ void AST_SplineTool::PopulateSplineWithInstancedMesh()
 	FVector _meshLocation = FVector(0);
 	FQuat _meshRotation = FQuat::Identity;
 
-	const float _meshSpacing = bIsCustomMeshLength
+	const float _meshSpacing = bIsCustomSpacing
 		                           ? customMeshLength
-		                           //Nullity test (i.e. when new meshData has been added to list)
+		                           //Nullity test (i.e. when no new meshData has been added to list yet)
 		                           : _meshData.mesh
 		                           ? _meshData.mesh->GetBounds().BoxExtent.X
 		                           : customMeshLength;
@@ -294,7 +296,7 @@ void AST_SplineTool::PopulateSplineWithSplineMeshComponent(bool _bUpdateMesh)
 
 	const float _splineLength = totalLength;
 
-	const float _meshSpacing = bIsCustomMeshLength
+	const float _meshSpacing = bIsCustomSpacing
 		                           ? customMeshLength
 		                           //Nullity test (i.e. when new meshData has been added to list)
 		                           : _meshData.mesh
