@@ -29,6 +29,12 @@ class SPLINETOOL_API AST_SplineTool : public AActor
 	GENERATED_BODY()
 
 protected:
+	UPROPERTY(BlueprintReadWrite)
+	int pointsAmount = 0;
+
+	UPROPERTY()
+	UInstancedStaticMeshComponent* instancedStaticMesh = nullptr;
+
 #pragma region MeasurementTool
 
 	UPROPERTY(BlueprintReadWrite)
@@ -71,25 +77,21 @@ protected:
 		Category="SplineTool",
 		AdvancedDisplay)
 	USplineComponent* splineComponent = nullptr;
-	UPROPERTY(BlueprintReadWrite, Category="SplineTool|Spline settings")
-	int pointsAmount = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,
 		Category = "SplineTool|Spline settings|Meshes")
 	TArray<FSplineMeshData> defaultMeshes;
-	UPROPERTY()
-	UInstancedStaticMeshComponent* instancedStaticMesh = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,
 		Category="SplineTool|Spline settings")
 	bool bIsEditMode = true;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,
-		meta=(EditCondition="bIsEditMode", EditConditionHides, InlineEditConditionToggle),
+		meta=(InlineEditConditionToggle),
 		Category="SplineTool|Spline settings")
-	bool bIsCustomMeshLength = false;
+	bool bIsCustomSpacing = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,
-		meta=(EditCondition="bIsCustomMeshLength",
+		meta=(EditCondition="bIsCustomSpacing",
 			ClampMin=1, UIMin=1),
 		Category="SplineTool|Spline settings")
 	float customMeshLength = 150;
@@ -141,7 +143,7 @@ protected:
 	FSplineMeshData GetRandomDefaultMeshData() const
 	{
 		const int _meshesAmount = defaultMeshes.Num() - 1;
-		if(_meshesAmount < 0) return FSplineMeshData();
+		if (_meshesAmount < 0) return FSplineMeshData();
 		const int _meshIndex = FMath::RandRange(0, _meshesAmount);
 		const FSplineMeshData _currentDatas = defaultMeshes[_meshIndex];
 
