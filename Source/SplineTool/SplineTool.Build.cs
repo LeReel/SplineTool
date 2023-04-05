@@ -15,9 +15,16 @@ public class SplineTool : ModuleRules
 			"Core",
 			"CoreUObject",
 			"Engine",
-			"InputCore"
+			"Slate",
+			"UnrealEd"
 		});
-		PrivateDependencyModuleNames.AddRange(new string[] { });
+		PrivateDependencyModuleNames.AddRange(new string[]
+		{
+			"InputCore",
+			"SlateCore",
+			"PropertyEditor",
+			"LevelEditor"
+		});
 
 		PrivateIncludePaths.AddRange(new string[]
 		{
@@ -28,11 +35,6 @@ public class SplineTool : ModuleRules
 			"SplineTool/Public"
 		});
 
-		PrivateDependencyModuleNames.AddRange(new string[]
-		{
-			"Slate",
-			"SlateCore"
-		});
 
 		// Uncomment if you are using online features
 		// PrivateDependencyModuleNames.Add("OnlineSubsystem");
