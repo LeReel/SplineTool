@@ -69,20 +69,10 @@ AST_SplineTool::AST_SplineTool()
 void AST_SplineTool::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (!world)
-	{
-		world = GetWorld();
-	}
 }
 
 void AST_SplineTool::Tick(float DeltaSeconds)
 {
-	if (!world)
-	{
-		world = GetWorld();
-	}
-
 #if WITH_EDITOR
 	if (!lengthTextRender) return;
 
@@ -215,6 +205,9 @@ void AST_SplineTool::OnConstruction(const FTransform& Transform)
 		GenerateSplineMeshes();
 	}
 #endif
+	
+	if (bHasDoors) PlaceDoors();
+	if (bHasTail) PlaceElementAtIndex(tailMesh, pointsAmount - 1);
 }
 
 bool AST_SplineTool::ShouldTickIfViewportsOnly() const
@@ -310,7 +303,7 @@ void AST_SplineTool::PopulateSplineWithSplineMeshComponent(bool _bUpdateMesh)
 		USplineMeshComponent* _tmpSmc = NewObject<USplineMeshComponent>(this);
 		if (!_tmpSmc) break;
 		UpdateSplineMeshSettings(*_tmpSmc, _meshData, _bUpdateMesh);
-		SetSplineMeshStartEnd_Locked(*_tmpSmc, _meshData, i, _meshSpacing);
+		SetSplineMeshStartEnd_Locked(*_tmpSmc, i, _meshSpacing);
 	}
 }
 
@@ -334,36 +327,36 @@ void AST_SplineTool::UpdateSplineMeshSettings(USplineMeshComponent& _sMC,
 	_sMC.AttachToComponent(splineComponent, FAttachmentTransformRules::KeepRelativeTransform);
 }
 
+//Placement based on a given spacing (meshSize or custom) multiplied by _index
 void AST_SplineTool::SetSplineMeshStartEnd_Locked(USplineMeshComponent& _sMC,
-                                                  const FSplineMeshData _datas,
                                                   const int _index,
-                                                  const float _meshSize,
+                                                  const float _spacing,
                                                   bool _bUpdateMesh) const
 {
 	const int _endIndex = _index + 1;
 
-	if (_index * _meshSize >= totalLength)
+	if (_index * _spacing >= totalLength)
 	{
 		return;
 	}
 
 	const FVector _startPos = splineComponent->GetLocationAtDistanceAlongSpline(
-		_index * _meshSize, ESplineCoordinateSpace::Local);
+		_index * _spacing, ESplineCoordinateSpace::Local);
 	const FVector _startTan = splineComponent->GetTangentAtDistanceAlongSpline(
-		_index * _meshSize, ESplineCoordinateSpace::Local);
-	const FVector _cStartTan = _startTan.GetClampedToMaxSize(_meshSize);
+		_index * _spacing, ESplineCoordinateSpace::Local);
+	const FVector _cStartTan = _startTan.GetClampedToMaxSize(_spacing);
 
 	const FVector _endPos = splineComponent->GetLocationAtDistanceAlongSpline(
-		_endIndex * _meshSize, ESplineCoordinateSpace::Local);
+		_endIndex * _spacing, ESplineCoordinateSpace::Local);
 	const FVector _endTan = splineComponent->GetTangentAtDistanceAlongSpline(
-		_endIndex * _meshSize, ESplineCoordinateSpace::Local);
-	const FVector _cEndTan = _endTan.GetClampedToMaxSize(_meshSize);
+		_endIndex * _spacing, ESplineCoordinateSpace::Local);
+	const FVector _cEndTan = _endTan.GetClampedToMaxSize(_spacing);
 
 	_sMC.SetStartAndEnd(_startPos, _cStartTan, _endPos, _cEndTan, _bUpdateMesh);
 }
 
+//Placement based on splinePoints (meshStart = splinePoints[_index]; meshEnd = splinePoints[_index + 1]) 
 void AST_SplineTool::SetSplineMeshStartEnd_Free(USplineMeshComponent& _sMC,
-                                                const FSplineMeshData _datas,
                                                 const int _pointIndex,
                                                 bool _bUpdateMesh) const
 {
@@ -391,15 +384,46 @@ void AST_SplineTool::SetSplineMeshStartEnd_Free(USplineMeshComponent& _sMC,
 	_sMC.SetStartAndEnd(_startPos, _startTan, _endPos, _endTan, _bUpdateMesh);
 }
 
+
+void AST_SplineTool::PlaceElementAtIndex(const FSplineMeshData _datas, const int _index)
+{
+	USplineMeshComponent* _tmpSmc = NewObject<USplineMeshComponent>(this, USplineMeshComponent::StaticClass());
+	UpdateSplineMeshSettings(*_tmpSmc, _datas);
+
+	const FVector _loc = splineComponent->GetLocationAtSplinePoint(_index, ESplineCoordinateSpace::World);
+	_tmpSmc->SetWorldLocation(_loc);
+
+	// Gets lastPoint's forward and rotates the mesh according to lookAt
+	if (_index > 0)
+	{
+		const FVector _splineMeshForward = _tmpSmc->GetForwardVector();
+		const FVector _prevLoc = splineComponent->GetLocationAtSplinePoint(_index - 1, ESplineCoordinateSpace::World);
+		const FVector _fwd = _loc - _prevLoc;
+		const FRotator _lookAtFwd = UKismetMathLibrary::FindLookAtRotation(_splineMeshForward, _fwd);
+		_tmpSmc->AddLocalRotation(_lookAtFwd);
+	}
+}
+
+void AST_SplineTool::PlaceDoors()
+{
+	for (const int _doorIndex : doorIndexes)
+	{
+		if (_doorIndex < 0 || _doorIndex >= pointsAmount - 1) continue;
+
+		//TODO: Correct cast type / populating method (not working with SMC anymore as it is InstancedMesh now)
+		//Casts the mesh at splinePoint[index] as a splineMeshComponent
+		//USplineMeshComponent* _sMC = Cast<USplineMeshComponent>(splineComponent->GetChildComponent(_doorIndex));
+		//if (!_sMC || _sMC->GetStaticMesh() == doorMesh.mesh) continue; //Avoids placing a door on an existing one
+		//UpdateSplineMeshSettings(*_sMC, doorMesh);
+		//SetSplineMeshStartEnd_Free(*_sMC, doorMesh, _doorIndex);
+	}
+}
+
 void AST_SplineTool::ClipToGround()
 {
 	//Too perf-consuming at the moment
-	if (!bIsEditMode) return;
-
-	if (!world)
-	{
-		world = GetWorld();
-	}
+	if (!bIsEditMode || !world) return;
+	
 	const FVector _upVector = splineComponent->GetUpVector();
 
 	//Updates points locations through a lineTrace

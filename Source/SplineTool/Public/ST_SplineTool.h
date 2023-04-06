@@ -73,9 +73,8 @@ protected:
 
 #pragma endregion MeasurementTool
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite,
-		Category="SplineTool",
-		AdvancedDisplay)
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite,
+		Category="SplineTool")
 	USplineComponent* splineComponent = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,
@@ -100,6 +99,28 @@ protected:
 		meta=(EditCondition="bIsEditMode", EditConditionHides),
 		Category="SplineTool|Spline settings")
 	bool bIsClosed = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,
+		Category="SplineTool|Spline settings",
+		meta=(EditCondition="!bIsClosed", EditConditionHides))
+	bool bHasTail = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,
+		Category = "SplineTool|Spline settings|Meshes",
+		meta=(EditCondition="bHasTail", EditConditionHides))
+	FSplineMeshData tailMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,
+		Category="SplineTool|Spline settings",
+		meta=(EditCondition="bIsEditMode", EditConditionHides))
+	bool bHasDoors = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,
+		Category="SplineTool|Spline settings",
+		meta=(EditCondition="bHasDoors", EditConditionHides))
+	TArray<int32> doorIndexes;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,
+		Category = "SplineTool|Spline settings|Meshes",
+		meta=(EditCondition="bHasDoors", EditConditionHides))
+	FSplineMeshData doorMesh;
 
 	UPROPERTY(EditAnywhere,
 		Category="SplineTool",
@@ -124,20 +145,19 @@ protected:
 	virtual void PopulateSplineWithInstancedMesh();
 
 	void PopulateSplineWithSplineMeshComponent(bool _bUpdateMesh = true);
+	void GenerateSplineMeshes();
 
 	void UpdateSplineMeshSettings(USplineMeshComponent& _sMC,
 	                              const FSplineMeshData _datas,
 	                              bool _bUpdateMesh = true) const;
 
 	void SetSplineMeshStartEnd_Free(USplineMeshComponent& _sMC,
-	                                const FSplineMeshData _datas,
 	                                const int _pointIndex,
 	                                bool _bUpdateMesh = true) const;
 
 	void SetSplineMeshStartEnd_Locked(USplineMeshComponent& _sMC,
-	                                  const FSplineMeshData _datas,
 	                                  const int _index,
-	                                  const float _meshSize,
+	                                  const float _spacing,
 	                                  bool _bUpdateMesh = true) const;
 
 	FSplineMeshData GetRandomDefaultMeshData() const
@@ -150,7 +170,9 @@ protected:
 		return _currentDatas;
 	}
 
-	void GenerateSplineMeshes();
+	
+	void PlaceElementAtIndex(const FSplineMeshData _datas, const int _index);
+	void PlaceDoors();
 
 public:
 	UFUNCTION(CallInEditor, Category="SplineTool")
