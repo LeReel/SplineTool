@@ -39,6 +39,8 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite)
 	UTextRenderComponent* lengthTextRender = nullptr;
+	UPROPERTY(BlueprintReadWrite)
+	TArray<UTextRenderComponent*> betweenPointsTextRenders;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,
 		Category="SplineTool|Debug")
@@ -141,6 +143,8 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 
+	void GenerateTextRendersBetweenPoints();
+	
 	UFUNCTION()
 	virtual void PopulateSplineWithInstancedMesh();
 

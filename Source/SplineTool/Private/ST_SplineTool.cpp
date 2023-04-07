@@ -92,6 +92,14 @@ void AST_SplineTool::Tick(float DeltaSeconds)
 		FRotator _rot = UKismetMathLibrary::FindLookAtRotation(lengthTextRender->GetComponentLocation(),
 		                                                       _cameraLocation);
 		lengthTextRender->SetWorldRotation(_rot);
+
+		if (bShowDistanceBetweenEveryPoint)
+		{
+			for (UTextRenderComponent* testRenderer : betweenPointsTextRenders)
+			{
+				testRenderer->SetWorldRotation(_rot);
+			}
+		}
 		//==========================================================================//
 
 		//================================LOCATION==================================//
@@ -107,27 +115,6 @@ void AST_SplineTool::Tick(float DeltaSeconds)
 		}
 		lengthTextRender->SetWorldLocation(_loc + lengthTextOffset);
 		//==========================================================================//
-
-		//TODO: Correct placement
-		if (bShowDistanceBetweenEveryPoint)
-		{
-			for (int i = 1; i < pointsAmount; ++i)
-			{
-				const FVector _tmpLoc = splineComponent->GetLocationAtDistanceAlongSpline(
-					splineComponent->GetDistanceAlongSplineAtSplinePoint(i) / 2,
-					ESplineCoordinateSpace::World);
-
-				DrawDebugSphere(world,
-				                _tmpLoc + lengthTextOffset,
-				                50,
-				                10,
-				                FColor::Green,
-				                false,
-				                -1,
-				                0,
-				                1);
-			}
-		}
 
 		//If shows total length
 		if (bShowTotalLength)
@@ -150,6 +137,36 @@ void AST_SplineTool::Tick(float DeltaSeconds)
 	}
 #endif
 	Super::Tick(DeltaSeconds);
+}
+
+void AST_SplineTool::GenerateTextRendersBetweenPoints()
+{
+	UE_LOG(LogTemp, Warning, TEXT("%d generateBetweenRenders %d points"), betweenPointsTextRenders.Num(), pointsAmount)
+	if (pointsAmount - 1 != betweenPointsTextRenders.Num())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Array flushed"))
+		for (UTextRenderComponent* _tR : betweenPointsTextRenders)
+		{
+			betweenPointsTextRenders.Remove(_tR);
+			_tR->DestroyComponent();
+		}
+	}
+	for (int i = 0; i < pointsAmount - 1; ++i)
+	{
+		//TODO: 
+		UTextRenderComponent* _tmpTr = NewObject<UTextRenderComponent>();
+		betweenPointsTextRenders.Add(_tmpTr);
+		const FVector _tmpLoc = splineComponent->GetLocationAtTime(
+				splineComponent->GetTimeAtDistanceAlongSpline(
+					splineComponent->GetDistanceAlongSplineAtSplinePoint(i)),
+				ESplineCoordinateSpace::World)
+			+ splineComponent->GetLocationAtTime(
+				splineComponent->GetTimeAtDistanceAlongSpline(
+					splineComponent->GetDistanceAlongSplineAtSplinePoint(i + 1)),
+				ESplineCoordinateSpace::Local);
+
+		_tmpTr->SetWorldLocation(_tmpLoc);
+	}
 }
 
 #if WITH_EDITOR
@@ -191,6 +208,15 @@ void AST_SplineTool::OnConstruction(const FTransform& Transform)
 	}
 
 	totalLength = splineComponent->GetSplineLength();
+
+	//If pointsAmount has changed
+	//if (bShowDistanceBetweenEveryPoint && pointsAmount != splineComponent->GetNumberOfSplinePoints())
+	//{
+	//	//GenerateTextRendersBetweenPoints();
+	//}
+
+	UE_LOG(LogTemp, Warning, TEXT("%d generateBetweenRenders %d points"), betweenPointsTextRenders.Num(), pointsAmount)
+	//TODO: pointsAmount always == 0
 	pointsAmount = splineComponent->GetNumberOfSplinePoints();
 
 #if WITH_EDITOR
@@ -205,7 +231,7 @@ void AST_SplineTool::OnConstruction(const FTransform& Transform)
 		GenerateSplineMeshes();
 	}
 #endif
-	
+
 	if (bHasDoors) PlaceDoors();
 	if (bHasTail) PlaceElementAtIndex(tailMesh, pointsAmount - 1);
 }
@@ -423,7 +449,7 @@ void AST_SplineTool::ClipToGround()
 {
 	//Too perf-consuming at the moment
 	if (!bIsEditMode || !world) return;
-	
+
 	const FVector _upVector = splineComponent->GetUpVector();
 
 	//Updates points locations through a lineTrace
