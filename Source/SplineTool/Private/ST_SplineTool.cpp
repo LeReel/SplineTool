@@ -98,41 +98,55 @@ void AST_SplineTool::Tick(float DeltaSeconds)
 			for (UTextRenderComponent* testRenderer : betweenPointsTextRenders)
 			{
 				testRenderer->SetWorldRotation(_rot);
+
+				DrawDebugSphere(
+					GetWorld(),
+					testRenderer->GetComponentLocation(),
+					50,
+					25,
+					FColor::Black,
+					false,
+					-1,
+					0,
+					3);
 			}
 		}
 		//==========================================================================//
 
-		//================================LOCATION==================================//
-		FVector _loc = FVector(0);
-		if (bShowLengthOnActorLocation)
-		{
-			_loc = GetActorLocation();
-		}
 		else
 		{
-			_loc = splineComponent->
-				GetLocationAtDistanceAlongSpline(totalLength / 2, ESplineCoordinateSpace::World);
-		}
-		lengthTextRender->SetWorldLocation(_loc + lengthTextOffset);
-		//==========================================================================//
+			//================================LOCATION==================================//
+			FVector _loc = FVector(0);
+			if (bShowLengthOnActorLocation)
+			{
+				_loc = GetActorLocation();
+			}
+			else
+			{
+				_loc = splineComponent->
+					GetLocationAtDistanceAlongSpline(totalLength / 2, ESplineCoordinateSpace::World);
+			}
+			lengthTextRender->SetWorldLocation(_loc + lengthTextOffset);
+			//==========================================================================//
 
-		//If shows total length
-		if (bShowTotalLength)
-		{
-			_lengthText = FText::FromString(FString::SanitizeFloat(totalLength));
+			//If shows total length
+			if (bShowTotalLength)
+			{
+				_lengthText = FText::FromString(FString::SanitizeFloat(totalLength));
 
-			lengthTextRender->SetText(_lengthText);
-		}
-		else if (bShowDirectDistance)
-		{
-			const float _directDistance = FVector::Dist(
-				splineComponent->GetLocationAtSplinePoint(
-					pointsAmount - 1,
-					ESplineCoordinateSpace::World),
-				splineComponent->GetLocationAtSplinePoint(
-					0, ESplineCoordinateSpace::World));
+				lengthTextRender->SetText(_lengthText);
+			}
+			else if (bShowDirectDistance)
+			{
+				const float _directDistance = FVector::Dist(
+					splineComponent->GetLocationAtSplinePoint(
+						pointsAmount - 1,
+						ESplineCoordinateSpace::World),
+					splineComponent->GetLocationAtSplinePoint(
+						0, ESplineCoordinateSpace::World));
 
-			_lengthText = FText::FromString(FString::SanitizeFloat(_directDistance));
+				_lengthText = FText::FromString(FString::SanitizeFloat(_directDistance));
+			}
 		}
 	}
 #endif
@@ -141,20 +155,19 @@ void AST_SplineTool::Tick(float DeltaSeconds)
 
 void AST_SplineTool::GenerateTextRendersBetweenPoints()
 {
-	UE_LOG(LogTemp, Warning, TEXT("%d generateBetweenRenders %d points"), betweenPointsTextRenders.Num(), pointsAmount)
-	if (pointsAmount - 1 != betweenPointsTextRenders.Num())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Array flushed"))
-		for (UTextRenderComponent* _tR : betweenPointsTextRenders)
-		{
-			betweenPointsTextRenders.Remove(_tR);
-			_tR->DestroyComponent();
-		}
-	}
+	UE_LOG(LogTemp, Warning, TEXT("Generate Renderer: %d generateBetweenRenders %d points"),
+	       betweenPointsTextRenders.Num(), pointsAmount)
+
+	//Destroy existing renderers
+	betweenPointsTextRenders.Empty();
+
+	//Regenerate them (always 1 less than pointsAmnt)
 	for (int i = 0; i < pointsAmount - 1; ++i)
 	{
-		//TODO: 
-		UTextRenderComponent* _tmpTr = NewObject<UTextRenderComponent>();
+		FName _name = "BetweenRenderer" + i;
+		UTextRenderComponent* _tmpTr = NewObject<UTextRenderComponent>(UTextRenderComponent::StaticClass(), _name);
+		_tmpTr->SetText(FText::FromString("testiniendo"));
+		
 		betweenPointsTextRenders.Add(_tmpTr);
 		const FVector _tmpLoc = splineComponent->GetLocationAtTime(
 				splineComponent->GetTimeAtDistanceAlongSpline(
@@ -165,7 +178,7 @@ void AST_SplineTool::GenerateTextRendersBetweenPoints()
 					splineComponent->GetDistanceAlongSplineAtSplinePoint(i + 1)),
 				ESplineCoordinateSpace::Local);
 
-		_tmpTr->SetWorldLocation(_tmpLoc);
+		_tmpTr->SetWorldLocation(_tmpLoc + lengthTextOffset);
 	}
 }
 
@@ -186,11 +199,12 @@ void AST_SplineTool::PostEditChangeProperty(FPropertyChangedEvent& PropertyChang
 		}
 	}
 	//ShowLength update
-	if (PropertyName == GET_MEMBER_NAME_CHECKED(AST_SplineTool, bShowLengths))
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(AST_SplineTool, bShowLengths) ||
+		PropertyName == GET_MEMBER_NAME_CHECKED(AST_SplineTool, bShowDistanceBetweenEveryPoint))
 	{
 		if (lengthTextRender)
 		{
-			lengthTextRender->SetVisibility(bShowLengths);
+			lengthTextRender->SetVisibility(bShowLengths && !bShowDistanceBetweenEveryPoint);
 		}
 	}
 
@@ -208,16 +222,12 @@ void AST_SplineTool::OnConstruction(const FTransform& Transform)
 	}
 
 	totalLength = splineComponent->GetSplineLength();
-
-	//If pointsAmount has changed
-	//if (bShowDistanceBetweenEveryPoint && pointsAmount != splineComponent->GetNumberOfSplinePoints())
-	//{
-	//	//GenerateTextRendersBetweenPoints();
-	//}
-
-	UE_LOG(LogTemp, Warning, TEXT("%d generateBetweenRenders %d points"), betweenPointsTextRenders.Num(), pointsAmount)
-	//TODO: pointsAmount always == 0
 	pointsAmount = splineComponent->GetNumberOfSplinePoints();
+
+	if (bShowDistanceBetweenEveryPoint)
+	{
+		GenerateTextRendersBetweenPoints();
+	}
 
 #if WITH_EDITOR
 	//InstancedMesh for optimization (since UE5)
@@ -232,7 +242,6 @@ void AST_SplineTool::OnConstruction(const FTransform& Transform)
 	}
 #endif
 
-	if (bHasDoors) PlaceDoors();
 	if (bHasTail) PlaceElementAtIndex(tailMesh, pointsAmount - 1);
 }
 
@@ -427,21 +436,6 @@ void AST_SplineTool::PlaceElementAtIndex(const FSplineMeshData _datas, const int
 		const FVector _fwd = _loc - _prevLoc;
 		const FRotator _lookAtFwd = UKismetMathLibrary::FindLookAtRotation(_splineMeshForward, _fwd);
 		_tmpSmc->AddLocalRotation(_lookAtFwd);
-	}
-}
-
-void AST_SplineTool::PlaceDoors()
-{
-	for (const int _doorIndex : doorIndexes)
-	{
-		if (_doorIndex < 0 || _doorIndex >= pointsAmount - 1) continue;
-
-		//TODO: Correct cast type / populating method (not working with SMC anymore as it is InstancedMesh now)
-		//Casts the mesh at splinePoint[index] as a splineMeshComponent
-		//USplineMeshComponent* _sMC = Cast<USplineMeshComponent>(splineComponent->GetChildComponent(_doorIndex));
-		//if (!_sMC || _sMC->GetStaticMesh() == doorMesh.mesh) continue; //Avoids placing a door on an existing one
-		//UpdateSplineMeshSettings(*_sMC, doorMesh);
-		//SetSplineMeshStartEnd_Free(*_sMC, doorMesh, _doorIndex);
 	}
 }
 

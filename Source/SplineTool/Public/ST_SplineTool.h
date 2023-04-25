@@ -53,10 +53,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,
 		Category="SplineTool|Debug",
 		meta=(EditCondition="bShowLengths", EditConditionHides))
-	bool bShowTotalLength = false;
+	bool bShowTotalLength = true;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,
 		Category="SplineTool|Debug",
-		meta=(EditCondition="bShowTotalLength", EditConditionHides))
+		meta=(EditCondition="bShowTotalLength && bShowLengths", EditConditionHides))
 	bool bShowLengthOnActorLocation = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,
@@ -111,19 +111,6 @@ protected:
 		meta=(EditCondition="bHasTail", EditConditionHides))
 	FSplineMeshData tailMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite,
-		Category="SplineTool|Spline settings",
-		meta=(EditCondition="bIsEditMode", EditConditionHides))
-	bool bHasDoors = false;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite,
-		Category="SplineTool|Spline settings",
-		meta=(EditCondition="bHasDoors", EditConditionHides))
-	TArray<int32> doorIndexes;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite,
-		Category = "SplineTool|Spline settings|Meshes",
-		meta=(EditCondition="bHasDoors", EditConditionHides))
-	FSplineMeshData doorMesh;
-
 	UPROPERTY(EditAnywhere,
 		Category="SplineTool",
 		AdvancedDisplay)
@@ -176,7 +163,6 @@ protected:
 
 	
 	void PlaceElementAtIndex(const FSplineMeshData _datas, const int _index);
-	void PlaceDoors();
 
 public:
 	UFUNCTION(CallInEditor, Category="SplineTool")
