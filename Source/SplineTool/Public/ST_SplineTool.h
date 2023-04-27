@@ -68,7 +68,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,
 		Category="SplineTool|Debug",
 		meta=(EditCondition="bShowLengths", EditConditionHides))
-	bool bShowDistanceBetweenEveryPoint = false;
+	bool bShowDistancesBetweenPoints = false;
 
 	UPROPERTY(BlueprintReadWrite)
 	float totalLength = 0;

@@ -93,7 +93,7 @@ void AST_SplineTool::Tick(float DeltaSeconds)
 		                                                       _cameraLocation);
 		lengthTextRender->SetWorldRotation(_rot);
 
-		if (bShowDistanceBetweenEveryPoint)
+		if (bShowDistancesBetweenPoints)
 		{
 			for (UTextRenderComponent* testRenderer : betweenPointsTextRenders)
 			{
@@ -151,9 +151,6 @@ void AST_SplineTool::Tick(float DeltaSeconds)
 
 void AST_SplineTool::GenerateTextRendersBetweenPoints()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Generate Renderer: %d generateBetweenRenders %d points"),
-	       betweenPointsTextRenders.Num(), pointsAmount)
-
 	//Destroy existing renderers
 	betweenPointsTextRenders.Empty();
 
@@ -164,19 +161,10 @@ void AST_SplineTool::GenerateTextRendersBetweenPoints()
 		UTextRenderComponent* _tmpTr = NewObject<UTextRenderComponent>(UTextRenderComponent::StaticClass(), _name);
 		_tmpTr->SetText(FText::FromString("testiniendo"));
 		_tmpTr->SetComponentTickEnabled(true);
-		_tmpTr->SetVisibility(true, true);
-
+		_tmpTr->SetVisibility(true, false);
+		_tmpTr->SetWorldLocation(splineComponent->GetLocationAtSplinePoint(i+1, ESplineCoordinateSpace::World) + lengthTextOffset);
+		
 		betweenPointsTextRenders.Add(_tmpTr);
-		const FVector _tmpLoc = splineComponent->GetLocationAtTime(
-				splineComponent->GetTimeAtDistanceAlongSpline(
-					splineComponent->GetDistanceAlongSplineAtSplinePoint(i)),
-				ESplineCoordinateSpace::World)
-			+ splineComponent->GetLocationAtTime(
-				splineComponent->GetTimeAtDistanceAlongSpline(
-					splineComponent->GetDistanceAlongSplineAtSplinePoint(i + 1)),
-				ESplineCoordinateSpace::Local);
-
-		_tmpTr->SetWorldLocation(_tmpLoc + lengthTextOffset);
 	}
 }
 
@@ -230,7 +218,7 @@ void AST_SplineTool::OnConstruction(const FTransform& Transform)
 	totalLength = splineComponent->GetSplineLength();
 	pointsAmount = splineComponent->GetNumberOfSplinePoints();
 
-	if (bShowDistanceBetweenEveryPoint)
+	if (bShowDistancesBetweenPoints)
 	{
 		GenerateTextRendersBetweenPoints();
 	}
@@ -425,7 +413,7 @@ void AST_SplineTool::SetSplineMeshStartEnd_Free(USplineMeshComponent& _sMC,
 	_sMC.SetStartAndEnd(_startPos, _startTan, _endPos, _endTan, _bUpdateMesh);
 }
 
-
+//Places a given mesh at splinePoints[_index] and rotates it accordingly
 void AST_SplineTool::PlaceElementAtIndex(const FSplineMeshData _datas, const int _index)
 {
 	USplineMeshComponent* _tmpSmc = NewObject<USplineMeshComponent>(this, USplineMeshComponent::StaticClass());
