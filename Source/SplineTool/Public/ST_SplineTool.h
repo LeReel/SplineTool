@@ -52,12 +52,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,
 		Category="SplineTool|Debug",
-		meta=(EditCondition="bShowLengths", EditConditionHides))
-	bool bShowTotalLength = true;
+		meta=(EditCondition="bShowLengths"))
+	bool bShowLengthOnActorLocation = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,
 		Category="SplineTool|Debug",
-		meta=(EditCondition="bShowTotalLength && bShowLengths", EditConditionHides))
-	bool bShowLengthOnActorLocation = false;
+		meta=(EditCondition="bShowLengths", EditConditionHides))
+	bool bShowTotalLength = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,
 		Category="SplineTool|Debug",

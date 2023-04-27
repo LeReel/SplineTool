@@ -104,7 +104,7 @@ void AST_SplineTool::Tick(float DeltaSeconds)
 					testRenderer->GetComponentLocation(),
 					50,
 					25,
-					FColor::Black,
+					FColor::Purple,
 					false,
 					-1,
 					0,
@@ -113,41 +113,37 @@ void AST_SplineTool::Tick(float DeltaSeconds)
 		}
 		//==========================================================================//
 
+		//================================LOCATION==================================//
+		FVector _loc = FVector(0);
+		if (bShowLengthOnActorLocation)
+		{
+			_loc = GetActorLocation();
+		}
 		else
 		{
-			//================================LOCATION==================================//
-			FVector _loc = FVector(0);
-			if (bShowLengthOnActorLocation)
-			{
-				_loc = GetActorLocation();
-			}
-			else
-			{
-				_loc = splineComponent->
-					GetLocationAtDistanceAlongSpline(totalLength / 2, ESplineCoordinateSpace::World);
-			}
-			lengthTextRender->SetWorldLocation(_loc + lengthTextOffset);
-			//==========================================================================//
-
-			//If shows total length
-			if (bShowTotalLength)
-			{
-				_lengthText = FText::FromString(FString::SanitizeFloat(totalLength));
-
-				lengthTextRender->SetText(_lengthText);
-			}
-			else if (bShowDirectDistance)
-			{
-				const float _directDistance = FVector::Dist(
-					splineComponent->GetLocationAtSplinePoint(
-						pointsAmount - 1,
-						ESplineCoordinateSpace::World),
-					splineComponent->GetLocationAtSplinePoint(
-						0, ESplineCoordinateSpace::World));
-
-				_lengthText = FText::FromString(FString::SanitizeFloat(_directDistance));
-			}
+			_loc = splineComponent->
+				GetLocationAtDistanceAlongSpline(totalLength / 2, ESplineCoordinateSpace::World);
 		}
+		lengthTextRender->SetWorldLocation(_loc + lengthTextOffset);
+		//==========================================================================//
+
+		//If shows total length
+		if (bShowTotalLength)
+		{
+			_lengthText = FText::FromString(FString::SanitizeFloat(totalLength));
+		}
+		else if (bShowDirectDistance)
+		{
+			const float _directDistance = FVector::Dist(
+				splineComponent->GetLocationAtSplinePoint(
+					pointsAmount - 1,
+					ESplineCoordinateSpace::World),
+				splineComponent->GetLocationAtSplinePoint(
+					0, ESplineCoordinateSpace::World));
+
+			_lengthText = FText::FromString(FString::SanitizeFloat(_directDistance));
+		}
+		lengthTextRender->SetText(_lengthText);
 	}
 #endif
 	Super::Tick(DeltaSeconds);
@@ -167,7 +163,9 @@ void AST_SplineTool::GenerateTextRendersBetweenPoints()
 		FName _name = "BetweenRenderer" + i;
 		UTextRenderComponent* _tmpTr = NewObject<UTextRenderComponent>(UTextRenderComponent::StaticClass(), _name);
 		_tmpTr->SetText(FText::FromString("testiniendo"));
-		
+		_tmpTr->SetComponentTickEnabled(true);
+		_tmpTr->SetVisibility(true, true);
+
 		betweenPointsTextRenders.Add(_tmpTr);
 		const FVector _tmpLoc = splineComponent->GetLocationAtTime(
 				splineComponent->GetTimeAtDistanceAlongSpline(
@@ -199,13 +197,21 @@ void AST_SplineTool::PostEditChangeProperty(FPropertyChangedEvent& PropertyChang
 		}
 	}
 	//ShowLength update
-	if (PropertyName == GET_MEMBER_NAME_CHECKED(AST_SplineTool, bShowLengths) ||
-		PropertyName == GET_MEMBER_NAME_CHECKED(AST_SplineTool, bShowDistanceBetweenEveryPoint))
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(AST_SplineTool, bShowLengths))
 	{
 		if (lengthTextRender)
 		{
-			lengthTextRender->SetVisibility(bShowLengths && !bShowDistanceBetweenEveryPoint);
+			lengthTextRender->SetVisibility(bShowLengths);
 		}
+	}
+	//Direct/Total Distance update
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(AST_SplineTool, bShowTotalLength))
+	{
+		if (bShowTotalLength) bShowDirectDistance = false;
+	}
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(AST_SplineTool, bShowDirectDistance))
+	{
+		if (bShowDirectDistance) bShowTotalLength = false;
 	}
 
 	Super::PostEditChangeProperty(PropertyChangedEvent);
