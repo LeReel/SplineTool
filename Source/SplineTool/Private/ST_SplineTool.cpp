@@ -98,17 +98,6 @@ void AST_SplineTool::Tick(float DeltaSeconds)
 			for (UTextRenderComponent* testRenderer : betweenPointsTextRenders)
 			{
 				testRenderer->SetWorldRotation(_rot);
-
-				DrawDebugSphere(
-					GetWorld(),
-					testRenderer->GetComponentLocation(),
-					50,
-					25,
-					FColor::Purple,
-					false,
-					-1,
-					0,
-					3);
 			}
 		}
 		//==========================================================================//
